@@ -65,7 +65,7 @@ public class LCDInterface {
 	
 	public static int getCPUusage() {
 		OperatingSystemMXBean operatingSystemMXBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-		double load = load =  operatingSystemMXBean.getSystemCpuLoad() * 100.0;
+		double load =  operatingSystemMXBean.getSystemCpuLoad() * 100.0;
 		return (int) load ;
 	}
 	
