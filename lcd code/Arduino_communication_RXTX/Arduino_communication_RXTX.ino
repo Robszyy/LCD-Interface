@@ -73,6 +73,8 @@ void loop() {
          */
          animationPoints();
          animationBonjour(); 
+         animationPointsV2();
+         animationLCDI(); 
          
       }else{
          lcdd.setCursor(0, 0);

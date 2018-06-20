@@ -8,6 +8,8 @@ import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Enumeration;
+
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -18,6 +20,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import com.fazecast.jSerialComm.SerialPort;
 import com.sun.management.OperatingSystemMXBean;
+
+import gnu.io.CommPortIdentifier;
 
 
 public class LCDInterface {
@@ -50,11 +54,7 @@ public class LCDInterface {
 	 * 			boolean permettant de savoir si le port est correct
 	 */
 	public static boolean checkPort(SerialPort sp) {
-		if(sp.getNumDataBits() == 4){
-			return true;
-		}else {
-			return false;
-		}
+		return true;
 	}
 	
 	/**
@@ -238,9 +238,9 @@ public class LCDInterface {
 		connectButton.addActionListener(new ActionListener(){
 			@Override 
 			public void actionPerformed(ActionEvent arg0) {
-				portChoisi = SerialPort.getCommPort(ports.getSelectedItem().toString());
-				portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 				if(connectButton.getText().equals("Connect")) {
+					portChoisi = SerialPort.getCommPort(ports.getSelectedItem().toString());
+					portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 					if(date) {
 						// On prend le port choisi sur le JComboBox
 						if(portChoisi.openPort()) {
@@ -328,7 +328,6 @@ public class LCDInterface {
 									while(true) {
 										output.print(" ");
 										output.flush();
-										
 										try {
 											Thread.sleep(100); 
 										} catch(Exception e) {
@@ -341,6 +340,8 @@ public class LCDInterface {
 						}
 					}
 				} else if(connectButton.getText().equals("Send text")) {
+					portChoisi = SerialPort.getCommPort(ports.getSelectedItem().toString());
+					portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 						if(textSender) {
 							if(portChoisi.openPort()) {
 								Thread thread = new Thread(){
@@ -367,9 +368,10 @@ public class LCDInterface {
 								thread.start();
 							}
 						}
-				} else {
+				} else if (connectButton.getText().equals("Disconnect")){
 					// On se deconnect du port et on change le text du bouton pour refaire la manipulation
 					portChoisi.closePort();
+					System.out.println("ok");
 					ports.setEnabled(true);
 					connectButton.setText("Connect");
 				}
