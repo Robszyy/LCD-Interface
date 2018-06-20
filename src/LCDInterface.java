@@ -98,7 +98,7 @@ public class LCDInterface {
 		//On crée la frame qui va acceuillir les JPanel
 		JFrame frame = new JFrame();
 		frame.setTitle("Arduino LCD Interface");
-		frame.setSize(500, 200);
+		frame.setSize(500, 150);
 		frame.setLayout(new BorderLayout());
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -238,11 +238,11 @@ public class LCDInterface {
 		connectButton.addActionListener(new ActionListener(){
 			@Override 
 			public void actionPerformed(ActionEvent arg0) {
+				portChoisi = SerialPort.getCommPort(ports.getSelectedItem().toString());
+				portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 				if(connectButton.getText().equals("Connect")) {
 					if(date) {
 						// On prend le port choisi sur le JComboBox
-						portChoisi = SerialPort.getCommPort(ports.getSelectedItem().toString());
-						portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 						if(portChoisi.openPort()) {
 							connectButton.setText("Disconnect");
 							ports.setEnabled(false);
@@ -277,8 +277,6 @@ public class LCDInterface {
 							erreurPort.setVisible(true);
 						}
 					}else if (cpuinfos) {
-						portChoisi = SerialPort.getCommPort(ports.getSelectedItem().toString());
-						portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 						if(portChoisi.openPort()) {
 							connectButton.setText("Disconnect");
 							ports.setEnabled(false);
@@ -314,8 +312,6 @@ public class LCDInterface {
 							thread.start();
 						}
 					}else if (animations) {
-						portChoisi = SerialPort.getCommPort(ports.getSelectedItem().toString());
-						portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 						if(portChoisi.openPort()) {
 							connectButton.setText("Disconnect");
 							ports.setEnabled(false);
@@ -346,8 +342,6 @@ public class LCDInterface {
 					}
 				} else if(connectButton.getText().equals("Send text")) {
 						if(textSender) {
-							portChoisi = SerialPort.getCommPort(ports.getSelectedItem().toString());
-							portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 							if(portChoisi.openPort()) {
 								Thread thread = new Thread(){
 									@Override public void run() {
