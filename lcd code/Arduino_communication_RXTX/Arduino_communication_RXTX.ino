@@ -74,6 +74,8 @@ void loop() {
          animationPoints();
          animationBonjour(); 
          animationPointsV2();
+         animationSendingLove();
+         animationLove();
          animationLCDI(); 
          
       }else{
