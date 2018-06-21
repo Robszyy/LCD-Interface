@@ -1,14 +1,10 @@
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Enumeration;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -20,8 +16,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import com.fazecast.jSerialComm.SerialPort;
 import com.sun.management.OperatingSystemMXBean;
-
-import gnu.io.CommPortIdentifier;
 
 
 public class LCDInterface {
@@ -97,8 +91,8 @@ public class LCDInterface {
 		
 		//On crée la frame qui va acceuillir les JPanel
 		JFrame frame = new JFrame();
-		frame.setTitle("Arduino LCD Interface");
-		frame.setSize(500, 150);
+		frame.setTitle("LCD User Interface");
+		frame.setSize(500, 200);
 		frame.setLayout(new BorderLayout());
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -118,7 +112,7 @@ public class LCDInterface {
 		//On crée un JPanel qui va contenir un texte avec un jtextfield permettant d'envoyer un message via le port
 		jp = new JPanel();
 		JLabel text = new JLabel();
-		text.setText("Enter your text");
+		text.setText("Enter your text : ");
 		text.setVisible(false);
 		
 		jtf = new JTextField();
@@ -131,8 +125,18 @@ public class LCDInterface {
 		erreurPort.setVisible(false);
 		bas.add(erreurPort);
 		
+		JLabel version = new JLabel();
+		version.setText("LCD User Interface V1.1");
+		version.setVisible(true);
+		
 		jp.add(text);
 		jp.add(jtf);
+		
+		JPanel milieu = new JPanel();
+		milieu.setLayout(new BorderLayout());
+		milieu.add(bas,BorderLayout.NORTH);
+		milieu.add(jp,BorderLayout.CENTER);
+		milieu.add(version,BorderLayout.SOUTH);
 		
 		//On crée le JPanel du haut qui va contenir les JRadioButton
 		JPanel haut = new JPanel();
@@ -214,6 +218,7 @@ public class LCDInterface {
 				animations = false;
 			}
 		});
+		
 		ButtonGroup bg = new ButtonGroup();
 		bg.add(jrb1);
 		bg.add(jrb2);
@@ -226,8 +231,7 @@ public class LCDInterface {
 		haut.add(jrb4);
 		
 		frame.add(haut, BorderLayout.NORTH);
-		frame.add(bas, BorderLayout.CENTER);
-		frame.add(jp, BorderLayout.SOUTH);
+		frame.add(milieu, BorderLayout.CENTER);
 		
 		// On ajoute dans le JComboBox les ports de communication
 		SerialPort[] portNames = SerialPort.getCommPorts();
