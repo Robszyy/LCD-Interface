@@ -28,6 +28,7 @@ byte monstre[8]={
 };
 
 void setup() {
+  setupChar();
   lcdd.begin(16, 2);
   Serial.begin(9600);
   Serial.setTimeout(50);
@@ -76,6 +77,7 @@ void loop() {
          animationPointsV2();
          animationSendingLove();
          animationLove();
+         animationEtoile();
          animationLCDI(); 
          
       }else{

@@ -16,6 +16,22 @@ byte coeur[8]={
   B00000
 };
 
+byte etoile[8]={
+  B00000,
+  B00100,
+  B01110,
+  B11111,
+  B11111,
+  B01110,
+  B00100,
+  B00000
+};
+
+void setupChar(){
+   lcd.createChar(4, etoile);
+   lcd.createChar(3, coeur);
+}
+
 void animationPoints(){
  //On informe au fichier que c'est un lcd 16*2
  lcd.begin(16, 2);
@@ -512,7 +528,7 @@ void animationLCDI(){
  lcd.print("LCD User");
  delay(500);
  lcd.setCursor(1, 1);
- lcd.print("Interface V1.1");
+ lcd.print("Interface V1.2");
  delay(500);
  lcd.setCursor(0, 0);
  lcd.print("                ");
@@ -523,7 +539,7 @@ void animationLCDI(){
  lcd.setCursor(4, 0);
  lcd.print("LCD User");
  lcd.setCursor(1, 1);
- lcd.print("Interface V1.1");
+ lcd.print("Interface V1.2");
  delay(500);
  lcd.setCursor(0, 0);
  lcd.print("                ");
@@ -533,7 +549,7 @@ void animationLCDI(){
  lcd.setCursor(4, 0);
  lcd.print("LCD User");
  lcd.setCursor(1, 1);
- lcd.print("Interface V1.1");
+ lcd.print("Interface V1.2");
  delay(500);
  lcd.setCursor(0, 0);
  lcd.print("                ");
@@ -543,7 +559,7 @@ void animationLCDI(){
  lcd.setCursor(4, 0);
  lcd.print("LCD User");
  lcd.setCursor(1, 1);
- lcd.print("Interface V1.1");
+ lcd.print("Interface V1.2");
  delay(2000);
  animationLigne(0, false, true);
  animationLigne(0, true, true);
@@ -592,7 +608,6 @@ void animationLove(){
  lcd.begin(16, 2);
 
  lcd.clear();
- lcd.createChar(3, coeur);
 
  //Animation
  lcd.setCursor(3, 0);
@@ -728,4 +743,52 @@ void animationSendingLove(){
 	  lcd.print("Sending Love...");
 	  delay(250);
    }
+}
+
+void animationEtoile(){
+  //Animation
+  lcd.begin(16,2);
+
+  lcd.clear();
+
+  lcd.setCursor(0,0);
+  lcd.write(4);
+  delay(50);
+
+  lcd.setCursor(15,0);
+  lcd.write(4);
+  delay(50);
+
+  lcd.setCursor(15,1);
+  lcd.write(4);
+  delay(50);
+
+  lcd.setCursor(0,1);
+  lcd.write(4);
+  delay(50);
+  for(int i = 0; i < 6; i++){
+  	  lcd.setCursor(8,0);
+	  lcd.print(" ");
+	  lcd.setCursor(7,0);
+	  lcd.write(4);
+	  delay(150);
+
+	  lcd.setCursor(8,1);
+	  lcd.print(" ");
+	  lcd.setCursor(8,0);
+	  lcd.write(4);
+	  delay(150);
+
+	  lcd.setCursor(7,1);
+	  lcd.print(" ");
+	  lcd.setCursor(8,1);
+	  lcd.write(4);
+	  delay(150);
+
+	  lcd.setCursor(7,0);
+	  lcd.print(" ");
+	  lcd.setCursor(7,1);
+	  lcd.write(4);
+	  delay(150);
+  }
 }

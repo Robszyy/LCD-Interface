@@ -126,7 +126,7 @@ public class LCDInterface {
 		bas.add(erreurPort);
 		
 		JLabel version = new JLabel();
-		version.setText("LCD User Interface V1.1");
+		version.setText("LCD User Interface V1.2");
 		version.setVisible(true);
 		
 		jp.add(text);
