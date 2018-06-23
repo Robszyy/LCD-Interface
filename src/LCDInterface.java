@@ -49,8 +49,8 @@ public class LCDInterface {
 	private static JLabel erreurPort;
 	private static JCheckBoxMenuItem save;
 
-	private static URL url = System.class.getResource("/images/icon5.png");
-	private static Image image = Toolkit.getDefaultToolkit().getImage(url);
+	private static final URL url = System.class.getResource("/images/icon.png");
+	private static final Image image = Toolkit.getDefaultToolkit().getImage(url);
 	private static final PopupMenu popup = new PopupMenu();
     private static final TrayIcon trayIcon = new TrayIcon(image, "LCD User Interface", popup);
     private static final SystemTray tray = SystemTray.getSystemTray();
@@ -444,6 +444,7 @@ public class LCDInterface {
 		});
 		
 		frame.setVisible(true);
+		frame.setIconImage(image);
 		
 		//On ajoute un listener sur la fermeture de la frame
 		frame.addWindowListener(new WindowAdapter() {
