@@ -321,7 +321,7 @@ public class LCDInterface {
 											output.flush();
 											enregistrer = false;
 										}else {
-											output.print(new SimpleDateFormat("hh:mm:ss a     dd MMMMMMM yyyy").format(new Date()));
+											output.print(new SimpleDateFormat("    HH:mm:ss      dd MMMMMMM yyyy").format(new Date()));
 											output.flush();
 											if(retour) {
 												output.print("yyy");
