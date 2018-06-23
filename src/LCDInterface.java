@@ -1,16 +1,31 @@
+import java.awt.AWTException;
 import java.awt.BorderLayout;
+import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
+import java.awt.Toolkit;
+import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
@@ -25,13 +40,20 @@ public class LCDInterface {
 	private static boolean textSender = false;
 	private static boolean cpuinfos = false;
 	private static boolean animations = false;
+	private static boolean enregistrer = false;
+	private static boolean retour = false;
 	
 	private static JPanel jp;
 	private static JTextField jtf;
 	private static JButton connectButton;
 	private static JLabel erreurPort;
-	
-	private static boolean res = false;
+	private static JCheckBoxMenuItem save;
+
+	private static URL url = System.class.getResource("/images/icon5.png");
+	private static Image image = Toolkit.getDefaultToolkit().getImage(url);
+	private static final PopupMenu popup = new PopupMenu();
+    private static final TrayIcon trayIcon = new TrayIcon(image, "LCD User Interface", popup);
+    private static final SystemTray tray = SystemTray.getSystemTray();
 	
 	/**
 	 * Constructeur
@@ -94,8 +116,9 @@ public class LCDInterface {
 		frame.setTitle("LCD User Interface");
 		frame.setSize(500, 200);
 		frame.setLayout(new BorderLayout());
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+		//frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
 		//Menu déroulant
 		JComboBox<String> ports = new JComboBox<String>();
 		//On met le menu en version "grisée"
@@ -126,8 +149,24 @@ public class LCDInterface {
 		bas.add(erreurPort);
 		
 		JLabel version = new JLabel();
-		version.setText("LCD User Interface V1.2");
+		version.setText("LCD User Interface V1.4");
 		version.setVisible(true);
+		
+		JMenuBar menuBar = new JMenuBar();
+		JMenu menu = new JMenu("Options");
+		save = new JCheckBoxMenuItem ("Enregistrer");
+		menuBar.add(menu);
+		menu.add(save);
+		frame.setJMenuBar(menuBar);
+		
+		save.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				enregistrer = !enregistrer;
+			}
+		});
+		
+
 		
 		jp.add(text);
 		jp.add(jtf);
@@ -157,6 +196,9 @@ public class LCDInterface {
 				cpuinfos = false;
 				textSender = false;
 				animations = false;
+				enregistrer = false;
+				retour = true;
+				save.setSelected(false);
 			}
 		});
 		JRadioButton jrb2 = new JRadioButton("Send text");
@@ -176,6 +218,9 @@ public class LCDInterface {
 				cpuinfos = false;
 				textSender = true;
 				animations = false;
+				enregistrer = false;
+				retour = true;
+				save.setSelected(false);
 			}
 		});
 		JRadioButton jrb3 = new JRadioButton("Animations");
@@ -195,6 +240,9 @@ public class LCDInterface {
 				cpuinfos = false;
 				textSender = false;
 				animations = true;
+				enregistrer = false;
+				retour = true;
+				save.setSelected(false);
 			}
 		});
 		
@@ -216,6 +264,9 @@ public class LCDInterface {
 				cpuinfos = true;
 				textSender = false;
 				animations = false;
+				enregistrer = false;
+				retour = true;
+				save.setSelected(false);
 			}
 		});
 		
@@ -265,8 +316,20 @@ public class LCDInterface {
 									PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
 										
 									while(true) {
-										output.print(new SimpleDateFormat("hh:mm:ss a     dd MMMMMMM yyyy").format(new Date()));
-										output.flush();
+										if(enregistrer) {
+											output.print("  ");
+											output.flush();
+											enregistrer = false;
+										}else {
+											output.print(new SimpleDateFormat("hh:mm:ss a     dd MMMMMMM yyyy").format(new Date()));
+											output.flush();
+											if(retour) {
+												output.print("yyy");
+												output.flush();
+												retour = false;
+											}
+										}
+											
 										try {
 											Thread.sleep(100); 
 										} catch(Exception e) {
@@ -303,8 +366,7 @@ public class LCDInterface {
 											output.print("  RAM usage : " +String.valueOf(getRAMusage()) +"%");
 										else
 											output.print(" RAM usage : " +String.valueOf(getRAMusage()) +"%");
-										output.flush();
-										
+											output.flush();
 										try {
 											Thread.sleep(100); 
 										} catch(Exception e) {
@@ -375,7 +437,6 @@ public class LCDInterface {
 				} else if (connectButton.getText().equals("Disconnect")){
 					// On se deconnect du port et on change le text du bouton pour refaire la manipulation
 					portChoisi.closePort();
-					System.out.println("ok");
 					ports.setEnabled(true);
 					connectButton.setText("Connect");
 				}
@@ -383,6 +444,43 @@ public class LCDInterface {
 		});
 		
 		frame.setVisible(true);
-	}
+		
+		//On ajoute un listener sur la fermeture de la frame
+		frame.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				if(save.isSelected()) {
+					frame.setVisible(false);
+				}else {
+					System.exit(1);
+				}
+			}
+		});
+		
+		//MenuItem Exit
+	    MenuItem exitItem = new MenuItem("Exit");
+	    exitItem.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	            System.exit(1);
+	        }
+	    });
+	    
+	  //MenuItem Open
+	    MenuItem open = new MenuItem("Open");
+	    open.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	            frame.setVisible(true);
+	        }
+	    });
+	    
+	    popup.add(open);
+	    popup.addSeparator();
+	    popup.add(exitItem);
+	    trayIcon.setPopupMenu(popup);
 
+	    try {
+	        tray.add(trayIcon);
+	    } catch (AWTException e) {
+	        System.out.println("Impossible d'ajouter le TrayIcon !");
+	    }
+	}
 }

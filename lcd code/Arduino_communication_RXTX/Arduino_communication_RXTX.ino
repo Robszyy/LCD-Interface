@@ -5,6 +5,7 @@ LiquidCrystal lcdd(12, 11, 5, 4, 3, 2);
 
 boolean finBoot = false;
 boolean debutWait = false;
+boolean finSave = false;
 
 byte smiley[8] = {
   B00000,
@@ -40,6 +41,7 @@ void loop() {
   String texte = Serial.readString();
   String line1 = texte.substring(0, 16);
   String line2 = texte.substring(16, 32);
+  finSave = false;
   
   if(texte.length() == 0 && !finBoot){
       lcdd.setCursor(0, 0);
@@ -79,7 +81,26 @@ void loop() {
          animationLove();
          animationEtoile();
          animationLCDI(); 
-         
+      }else if(texte.equals("  ")){
+        while(!finSave){
+            texte = Serial.readString();
+            line1 = texte.substring(0, 16);
+            line2 = texte.substring(16, 32);
+          
+            lcdd.setCursor(0, 0);
+            lcdd.print("                ");
+            lcdd.setCursor(0, 1);
+            lcdd.print("                ");
+               
+            lcdd.setCursor(0, 0);
+            lcdd.print(line1);
+            lcdd.setCursor(0, 1);
+            lcdd.print(line2);
+
+            if(texte.equals("yyy")){
+              finSave = true;
+            }
+        }
       }else{
          lcdd.setCursor(0, 0);
          lcdd.print("                ");
