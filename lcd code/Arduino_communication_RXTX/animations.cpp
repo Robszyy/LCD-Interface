@@ -528,7 +528,7 @@ void animationLCDI(){
  lcd.print("LCD User");
  delay(500);
  lcd.setCursor(1, 1);
- lcd.print("Interface V1.5");
+ lcd.print("Interface V1.6");
  delay(500);
  lcd.setCursor(0, 0);
  lcd.print("                ");
@@ -539,7 +539,7 @@ void animationLCDI(){
  lcd.setCursor(4, 0);
  lcd.print("LCD User");
  lcd.setCursor(1, 1);
- lcd.print("Interface V1.5");
+ lcd.print("Interface V1.6");
  delay(500);
  lcd.setCursor(0, 0);
  lcd.print("                ");
@@ -549,7 +549,7 @@ void animationLCDI(){
  lcd.setCursor(4, 0);
  lcd.print("LCD User");
  lcd.setCursor(1, 1);
- lcd.print("Interface V1.5");
+ lcd.print("Interface V1.6");
  delay(500);
  lcd.setCursor(0, 0);
  lcd.print("                ");
@@ -559,7 +559,7 @@ void animationLCDI(){
  lcd.setCursor(4, 0);
  lcd.print("LCD User");
  lcd.setCursor(1, 1);
- lcd.print("Interface V1.5");
+ lcd.print("Interface V1.6");
  delay(2000);
  animationLigne(0, false, true);
  animationLigne(0, true, true);

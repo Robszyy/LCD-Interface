@@ -3,6 +3,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 
 import javax.swing.JPanel;
 
@@ -18,6 +19,10 @@ public class DrawLCD extends JPanel{
 	
 	private Carre[] tab;
 	private static final int taille = 30;
+	
+	/**
+	 * Constructeur
+	 */
 	
 	public DrawLCD() {
 		tab = new Carre[32];
@@ -36,13 +41,15 @@ public class DrawLCD extends JPanel{
 		this.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				for(int i = 0; i < tab.length; i++) {
-					if (tab[i].contient(e.getPoint())){
-						tab[i].setEstClique();
-						tab[i].setChar(LCDInterface.getCharToDraw().getText().charAt(0));
+				if(!LCDInterface.getCharToDraw().getText().isEmpty()) {
+					for(int i = 0; i < tab.length; i++) {
+						if (tab[i].contient(e.getPoint())){
+							tab[i].setEstClique();
+							tab[i].setChar(LCDInterface.getCharToDraw().getText().charAt(0));	
+						}
 					}
+					repaint();
 				}
-				repaint();
 			}
 
 			@Override
@@ -60,6 +67,11 @@ public class DrawLCD extends JPanel{
 		});
 	}
 	
+	/**
+	 * Methode paintComponent
+	 * @param g
+	 * 			Graphics
+	 */
     public void paintComponent(Graphics g){
     	super.paintComponent(g);
   
@@ -76,6 +88,12 @@ public class DrawLCD extends JPanel{
     		}
     	}
     }
+    
+    /**
+     * Methode getTab
+     * @return
+     * 			le tableau de carre
+     */
     
     public Carre[] getTab() {
     	return this.tab;
