@@ -1,5 +1,9 @@
 import java.awt.AWTException;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
@@ -15,7 +19,6 @@ import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -48,6 +51,9 @@ public class LCDInterface {
 	private static JButton connectButton;
 	private static JLabel erreurPort;
 	private static JCheckBoxMenuItem save;
+	private static JMenuItem draw;
+	private static JComboBox<String> ports;
+	private static JTextField charToDraw;
 
 	private static final URL url = System.class.getResource("/images/icon.png");
 	private static final Image image = Toolkit.getDefaultToolkit().getImage(url);
@@ -59,8 +65,7 @@ public class LCDInterface {
 	 * Constructeur
 	 */
 	
-	public LCDInterface() {
-	}
+	public LCDInterface() {}
 	
 	/**
 	 * Methode checkPort
@@ -70,7 +75,10 @@ public class LCDInterface {
 	 * 			boolean permettant de savoir si le port est correct
 	 */
 	public static boolean checkPort(SerialPort sp) {
-		return true;
+		if(sp.isOpen())
+			return true;
+		else
+			return false;
 	}
 	
 	/**
@@ -104,6 +112,16 @@ public class LCDInterface {
 	}
 	
 	/**
+	 * Methode getCharToDraw
+	 * @return
+	 * 			le charactere a afficher
+	 */
+	
+	public static JTextField getCharToDraw() {
+		return charToDraw;
+	}
+	
+	/**
 	 * Methode main
 	 * @param args
 	 * 				arguments paramètres
@@ -120,7 +138,7 @@ public class LCDInterface {
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
 		//Menu déroulant
-		JComboBox<String> ports = new JComboBox<String>();
+		ports = new JComboBox<String>();
 		//On met le menu en version "grisée"
 		ports.setEnabled(false);
 		//On crée le bouton connect
@@ -149,14 +167,19 @@ public class LCDInterface {
 		bas.add(erreurPort);
 		
 		JLabel version = new JLabel();
-		version.setText("LCD User Interface V1.4");
+		version.setText("LCD User Interface V1.5");
 		version.setVisible(true);
 		
 		JMenuBar menuBar = new JMenuBar();
 		JMenu menu = new JMenu("Options");
 		save = new JCheckBoxMenuItem ("Enregistrer");
-		menuBar.add(menu);
+		draw = new JMenuItem("Draw [Beta]");
+		
+		menu.add(draw);
+		menu.addSeparator();
 		menu.add(save);
+		
+		menuBar.add(menu);
 		frame.setJMenuBar(menuBar);
 		
 		save.addActionListener(new ActionListener() {
@@ -166,8 +189,85 @@ public class LCDInterface {
 			}
 		});
 		
+		draw.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DrawLCD drawlcd = new DrawLCD();
+				drawlcd.setPreferredSize(new Dimension(600,150));
+				
+				JFrame frameDraw = new JFrame("Draw [Beta]");
+				frameDraw.setSize(600, 300);
+				frameDraw.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				
+				JPanel main = new JPanel();
+				main.setLayout(new FlowLayout());
+				JPanel milieu = new JPanel();
+				JPanel milieuTT = new JPanel();
+				milieuTT.setLayout(new BorderLayout());
+				JPanel bas = new JPanel();
+				JButton draw = new JButton("Draw");
+				JLabel textDraw = new JLabel("Enter a character : ");
+				charToDraw = new JTextField();
+				charToDraw.setColumns(2);
+				
+				draw.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						Carre[] tab = drawlcd.getTab();
+						
+						portChoisi = SerialPort.getCommPort(ports.getSelectedItem().toString());
+						portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
+						if(portChoisi.openPort() && checkPort(portChoisi)) {
+							Thread thread = new Thread(){
+								@Override public void run() {
+									try {
+										Thread.sleep(100); 
+									} catch(Exception e) {
+										
+									}
+	
+									PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
+									System.out.println(portChoisi.getDescriptivePortName());
+									while(true) {
+										for(int i = 0; i < tab.length; i++) {
+											output.print(tab[i]);
+											output.flush();
+										}
+										
+										try {
+											Thread.sleep(100); 
+										} catch(Exception e) {
+											
+										}
+									}
+								}
+							};
+							thread.start();
+					
+						}
+					}
+				});
+				
+				ports.setEnabled(true);
+				
+				bas.add(draw);
+				bas.add(ports);
+				
+				milieu.add(textDraw);
+				milieu.add(charToDraw);
+				
+				milieuTT.add(milieu,BorderLayout.NORTH);
+				milieuTT.add(bas,BorderLayout.CENTER);
+				
+				main.add(drawlcd);
+				main.add(milieuTT);
+				
+				frameDraw.add(main);
+				frameDraw.setVisible(true);
+				
+			}
+		});
 
-		
 		jp.add(text);
 		jp.add(jtf);
 		
@@ -298,7 +398,7 @@ public class LCDInterface {
 					portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 					if(date) {
 						// On prend le port choisi sur le JComboBox
-						if(portChoisi.openPort()) {
+						if(portChoisi.openPort() && checkPort(portChoisi)) {
 							connectButton.setText("Disconnect");
 							ports.setEnabled(false);
 								
