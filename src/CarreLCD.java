@@ -13,7 +13,7 @@ import java.awt.Polygon;
  *
  */
 
-public class Carre extends Polygon{
+public class CarreLCD extends Polygon{
 	private Polygon poly;
 	private boolean estClique = false;
 	private char charToDraw;
@@ -26,7 +26,7 @@ public class Carre extends Polygon{
 	 * 			l'ordonne du point haut gauche du carre
 	 */
 	
-	public Carre(int x, int y) {
+	public CarreLCD(int x, int y) {
 		poly = new Polygon();
 		poly.addPoint(x,y);
 		poly.addPoint(x, y+30);

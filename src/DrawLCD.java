@@ -17,7 +17,7 @@ import javax.swing.JPanel;
  */
 public class DrawLCD extends JPanel{
 	
-	private Carre[] tab;
+	private CarreLCD[] tab;
 	private static final int taille = 30;
 	
 	/**
@@ -25,16 +25,16 @@ public class DrawLCD extends JPanel{
 	 */
 	
 	public DrawLCD() {
-		tab = new Carre[32];
+		tab = new CarreLCD[32];
 		int x = 50;
 		for(int i = 0; i < 16; i++) {
-    		tab[i] = new Carre(x,50);
+    		tab[i] = new CarreLCD(x,50);
     		x += taille;
 		}
 		
 		x = 50;
     	for(int i = 0; i < 16; i++) {
-    		tab[i+16] = new Carre(x,50+taille);
+    		tab[i+16] = new CarreLCD(x,50+taille);
     		x += taille;
     	}
 		
@@ -95,7 +95,7 @@ public class DrawLCD extends JPanel{
      * 			le tableau de carre
      */
     
-    public Carre[] getTab() {
+    public CarreLCD[] getTab() {
     	return this.tab;
     }
 }
