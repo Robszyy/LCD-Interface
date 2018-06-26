@@ -7,13 +7,13 @@ void setup() {
   lcdd.begin(16, 2);
   Serial.begin(9600);
   Serial.setTimeout(50);
-  setupChar();
-  animationPoints();
-  animationBonjour();
-  animationPoints();
-  animationBooting();
-  animationBooting();
-  animationBooting();
+  //setupChar();
+  //animationPoints();
+ // animationBonjour();
+  //animationPoints();
+  //animationBooting();
+  //animationBooting();
+  //animationBooting();
 
   lcdd.clear();
 }

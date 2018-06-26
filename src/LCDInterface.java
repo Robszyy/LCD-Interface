@@ -14,6 +14,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.net.URL;
@@ -27,6 +34,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -52,6 +60,8 @@ public class LCDInterface {
 	private static boolean finDraw = false;
 	private static boolean portChoix = false;
 	private static boolean finAnime = false;
+	
+	private static int nbAnimations = 0;
 	
 	private static JPanel jp;
 	private static JTextField jtf;
@@ -180,7 +190,7 @@ public class LCDInterface {
 		bas.add(erreurPort);
 		
 		JLabel version = new JLabel();
-		version.setText("LCD User Interface V1.8");
+		version.setText("LCD User Interface V1.9");
 		version.setVisible(true);
 		
 		JMenuBar menuBar = new JMenuBar();
@@ -263,8 +273,13 @@ public class LCDInterface {
 							
 							//JButton pour ajouter au slot 
 							JButton jbAdd = new JButton("Add");
-							//JTextField pour lancer l'animation
+							//JButton pour lancer l'animation
 							JButton jbAnimate = new JButton("Animate");
+							//JButton pour enregistrer l'animation
+							JButton jbSave = new JButton("Save");
+							//JButton pour charger une animation
+							JButton jbLoad = new JButton("Load");
+							
 							
 							//JLabels explicatifs
 							JLabel textSlot = new JLabel("Slot : ");
@@ -292,6 +307,12 @@ public class LCDInterface {
 							JPanel middleTotal = new JPanel();
 							middleTotal.setLayout(new BorderLayout());
 							
+							//JPanel bottomSaveLoad
+							JPanel bottomSaveLoad = new JPanel();
+							//JPanel bottomSaveLoad
+							JPanel bottomLast = new JPanel();
+							bottomLast.setLayout(new BorderLayout());
+							
 							//JPanel bottom
 							JPanel bottom = new JPanel();
 							
@@ -312,8 +333,14 @@ public class LCDInterface {
 							bottom.add(jbAdd);
 							bottom.add(jbAnimate);
 							
+							bottomSaveLoad.add(jbSave);
+							bottomSaveLoad.add(jbLoad);
+							
+							bottomLast.add(bottom,BorderLayout.CENTER);
+							bottomLast.add(bottomSaveLoad,BorderLayout.SOUTH);
+							
 							middleTotal.add(middle,BorderLayout.CENTER);
-							middleTotal.add(bottom,BorderLayout.SOUTH);
+							middleTotal.add(bottomLast,BorderLayout.SOUTH);
 							
 							main.add(animatelcd);
 							main.add(middleTotal);
@@ -338,10 +365,10 @@ public class LCDInterface {
 										}catch(NumberFormatException nfe) {
 											System.out.println("Ce n'est pas un chiffre");
 										}
-										
 										tabAnimations.add(new AnimationLCD(slotChoisi, delayChoisi));
 										tabMessages.add(msg);
 										slot.removeItemAt(slot.getSelectedIndex());
+										nbAnimations++;
 									}
 								}	
 							});
@@ -407,6 +434,123 @@ public class LCDInterface {
 											thread.start();
 										}
 										jbAnimate.setText("Animate");
+									}
+								}
+								
+							});
+							
+							//Listener on JButton
+							jbSave.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									JFrame frameDialog = new JFrame();
+									frameDialog.setIconImage(image);
+									JFileChooser fileChooser = new JFileChooser();
+									
+									if (fileChooser.showSaveDialog(frameDialog) == JFileChooser.APPROVE_OPTION) {
+									  File file = fileChooser.getSelectedFile();
+									  try {
+										String path = file.getPath() + ".lcd";
+										file = new File(path);
+										
+										FileWriter filewriter = new FileWriter(file.getPath(), true);
+										BufferedWriter buff = new BufferedWriter(filewriter);
+										PrintWriter writer = new PrintWriter(buff);
+										writer.println("start");
+										
+										writer.println();
+										writer.println("Nombres de slots : ");
+										writer.println(String.valueOf(nbAnimations));
+										
+										writer.println();
+										writer.println("Messages : ");
+										
+										for(int i = 0; i < tabMessages.size(); i++) {
+											writer.println(tabMessages.get(i));
+										}
+										
+										writer.println();
+										writer.println("Delays : ");
+										
+										for(int i = 0; i < tabAnimations.size(); i++) {
+											writer.println(String.valueOf(tabAnimations.get(i).getDelay()));
+										}
+										
+										writer.println();
+										writer.println("close");
+										writer.close();
+																		
+									  } catch (FileNotFoundException e2) {
+										e2.printStackTrace();
+									  } catch (IOException e1) {
+										e1.printStackTrace();
+									  }
+									}
+									
+								}
+								
+							});
+							
+							jbLoad.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									JFrame frameDialog = new JFrame();
+									frameDialog.setIconImage(image);
+									JFileChooser fileChooser = new JFileChooser();
+									
+									if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+									  File file = fileChooser.getSelectedFile();
+									  try {
+											FileReader filereader = new FileReader(file.getPath());
+											BufferedReader buff = new BufferedReader(filereader);
+											String line, slots;
+											ArrayList<String> listDelays = new ArrayList<String>();
+											ArrayList<String> listMessage = new ArrayList<String>();
+											
+											if(buff.readLine().equals("start")) {
+												while((line = buff.readLine()) != null) {
+													if(line.equals("Nombres de slots : ")) {
+														slots = buff.readLine();
+														System.out.println(slots);
+													}else if(line.equals("Messages : ")){
+														line = buff.readLine();
+														while(!line.isEmpty()) {
+															listMessage.add(line);
+															line = buff.readLine();
+														}
+														
+														tabMessages.clear();
+														for(int i = 0; i < listMessage.size(); i++) {
+															tabMessages.add(listMessage.get(i));
+														}
+														
+													}else if(line.equals("Delays : ")){
+														line = buff.readLine();
+														while(!line.isEmpty()) {
+															listDelays.add(line);
+															line = buff.readLine();
+														}
+														
+														tabAnimations.clear();
+														for(int j = 0; j < listDelays.size(); j++) {
+															tabAnimations.add(new AnimationLCD(j,Integer.parseInt(listDelays.get(j))));
+														}
+														
+													}else if(line.equals("close")){
+														buff.close();
+														break;
+													}
+												}
+											}else {
+												System.out.println("Fichier non valide");
+												buff.close();
+											}
+										
+										} catch (FileNotFoundException e1) {
+											e1.printStackTrace();
+										} catch (IOException e1) {
+											e1.printStackTrace();
+										}
 									}
 								}
 								

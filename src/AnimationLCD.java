@@ -35,6 +35,10 @@ public class AnimationLCD implements Comparator<AnimationLCD>, Comparable<Animat
 	public int getDelay() {
 		return this.temps;
 	}
+	
+	public void setDelay(int delay) {
+		this.temps = delay;
+	}
 
 	@Override
 	public int compareTo(AnimationLCD o) {
