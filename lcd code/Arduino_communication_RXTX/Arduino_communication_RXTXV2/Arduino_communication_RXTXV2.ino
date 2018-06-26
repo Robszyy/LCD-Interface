@@ -1,4 +1,5 @@
 #include <LiquidCrystal.h>
+#include "animations.h"
 
 LiquidCrystal lcdd(12, 11, 5, 4, 3, 2);
 
@@ -6,6 +7,15 @@ void setup() {
   lcdd.begin(16, 2);
   Serial.begin(9600);
   Serial.setTimeout(50);
+  setupChar();
+  animationPoints();
+  animationBonjour();
+  animationPoints();
+  animationBooting();
+  animationBooting();
+  animationBooting();
+
+  lcdd.clear();
 }
 
 void loop() {

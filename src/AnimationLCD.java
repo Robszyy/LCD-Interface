@@ -1,4 +1,5 @@
 import java.io.PrintWriter;
+import java.util.Comparator;
 
 import com.fazecast.jSerialComm.SerialPort;
 
@@ -10,10 +11,9 @@ import com.fazecast.jSerialComm.SerialPort;
  * @author Robin_prgn
  *
  */
-public class AnimationLCD {
+public class AnimationLCD implements Comparator<AnimationLCD>, Comparable<AnimationLCD>{
 	private int place;
 	private int temps;
-	private CarreLCD[] caracteres;
 	
 	/**
 	 * Constructeur
@@ -21,14 +21,11 @@ public class AnimationLCD {
 	 * 				le numéro du slot
 	 * @param dalay
 	 * 				le temps de delay
-	 * @param tab
-	 * 				le tableau de caractere
 	 */
 	
 	public AnimationLCD(int slot, int delay) {
 		this.place = slot;
 		this.temps = delay;
-		//this.caracteres = tab;
 	}
 	
 	public int getSlot() {
@@ -38,8 +35,14 @@ public class AnimationLCD {
 	public int getDelay() {
 		return this.temps;
 	}
-	
-	public CarreLCD[] getTabChar() {
-		return this.caracteres;
+
+	@Override
+	public int compareTo(AnimationLCD o) {
+		return new Integer (this.place).compareTo(new Integer(o.getSlot()));
+	}
+
+	@Override
+	public int compare(AnimationLCD o1, AnimationLCD o2) {
+		return new Integer (o1.getSlot()).compareTo(new Integer(o2.getSlot()));
 	}
 }

@@ -19,6 +19,8 @@ import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
@@ -49,7 +51,7 @@ public class LCDInterface {
 	private static boolean retour = false;
 	private static boolean finDraw = false;
 	private static boolean portChoix = false;
-	private static boolean finBoot = false;
+	private static boolean finAnime = false;
 	
 	private static JPanel jp;
 	private static JTextField jtf;
@@ -182,7 +184,8 @@ public class LCDInterface {
 		version.setVisible(true);
 		
 		JMenuBar menuBar = new JMenuBar();
-		JMenu menu = new JMenu("Options");
+		JMenu menuOptions = new JMenu("Options");
+		JMenu menuHelp = new JMenu("Help");
 		save = new JCheckBoxMenuItem ("Save");
 		save.setToolTipText("Save your choice");
 		draw = new JMenuItem("Draw");
@@ -191,13 +194,14 @@ public class LCDInterface {
 		animate = new JMenuItem("Animate [Beta]");
 		draw.setToolTipText("Animate your own drawing");
 		
-		menu.add(animate);
-		menu.addSeparator();
-		menu.add(draw);
-		menu.addSeparator();
-		menu.add(save);
+		menuOptions.add(animate);
+		menuOptions.addSeparator();
+		menuOptions.add(draw);
+		menuOptions.addSeparator();
+		menuOptions.add(save);
 		
-		menuBar.add(menu);
+		menuBar.add(menuOptions);
+		menuBar.add(menuHelp);
 		frame.setJMenuBar(menuBar);
 		
 		animate.setEnabled(true);
@@ -242,7 +246,11 @@ public class LCDInterface {
 							animateFrameFinal.setVisible(true);
 							
 							//JComboBox qui contient le nombres de slots
-							String[] nbSlots = {"1","2","3","4","5","6","7","8","9","10"};
+							String[] nbSlots = new String[32];
+							for(int i = 0; i < 32; i++) {
+								nbSlots[i] = (i+1)+"";
+							}
+							
 							JComboBox slot = new JComboBox(nbSlots);
 							
 							//JTextField pour entrer son charactere
@@ -321,6 +329,7 @@ public class LCDInterface {
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									if(jtfChar.getText().length() == 1 && jtfDelay.getText().length() <= 5) {
+										
 										int delayChoisi = 100;
 										int slotChoisi = slot.getSelectedIndex()+1;
 										String msg = animatelcd.getAffichage();
@@ -343,6 +352,7 @@ public class LCDInterface {
 								public void actionPerformed(ActionEvent e) {
 									PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
 									if(jbAnimate.getText().equals("Animate")) {
+										finAnime = false;
 										jbAnimate.setText("Stop Animation");
 										if(portChoisi.openPort() && checkPort(portChoisi)) {
 											Thread thread = new Thread(){
@@ -353,7 +363,7 @@ public class LCDInterface {
 														
 													}
 
-													while(true) {
+													while(!finAnime) {
 														for(int i = 0; i < tabAnimations.size(); i++) {
 															int delay = tabAnimations.get(i).getDelay();
 															
@@ -374,8 +384,28 @@ public class LCDInterface {
 											thread.start();
 										}
 									}else if(jbAnimate.getText().equals("Stop Animation")) {
-										output.print("                                ");
-										output.flush();
+										finAnime = true;
+										if(portChoisi.openPort() && checkPort(portChoisi)) {
+											Thread thread = new Thread(){
+												@Override public void run() {
+													try {
+														Thread.sleep(100); 
+													} catch(Exception e) {
+														
+													}
+													
+													output.print("                                ");
+													output.flush();
+															
+													try {
+														Thread.sleep(100);
+													}catch(Exception excep) {
+														
+													}
+												}
+											};
+											thread.start();
+										}
 										jbAnimate.setText("Animate");
 									}
 								}
@@ -427,6 +457,7 @@ public class LCDInterface {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFrame drawFrameConnect = new JFrame("Choose your port");
+				drawFrameConnect.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 				drawFrameConnect.setIconImage(image);
 				drawFrameConnect.setSize(300, 100);
 				JPanel mainDraw = new JPanel();
@@ -446,6 +477,19 @@ public class LCDInterface {
 				
 				drawFrameConnect.add(mainDraw);
 				drawFrameConnect.setVisible(true);
+				
+				//Listener window
+				drawFrameConnect.addWindowListener(new WindowAdapter() {
+					public void windowClosing(WindowEvent e) {
+						draw.setEnabled(true);
+						animate.setEnabled(true);
+						drawFrameConnect.setVisible(false);
+						drawFrameConnect.dispose();
+						
+						if(portChoisi != null)
+							portChoisi.closePort();
+					}
+				});
 				
 				drawConnect.addActionListener(new ActionListener() {
 					@Override
@@ -593,8 +637,6 @@ public class LCDInterface {
 						
 						frameDraw.addWindowListener(new WindowAdapter() {
 							public void windowClosing(WindowEvent e) {
-								draw.setEnabled(true);
-								animate.setEnabled(true);
 								drawConnect.setEnabled(true);
 								portsDraw.setEnabled(true);
 								frameDraw.setVisible(false);
@@ -606,12 +648,9 @@ public class LCDInterface {
 						});
 					}
 				});
-				//Fin Fonctionnalité Draw
-						
-			}
-					
-		});
-					
+				//Fin Fonctionnalité Draw		
+			}	
+		});	
 		
 		//Fonctionnalité Save
 		save.addActionListener(new ActionListener() {
