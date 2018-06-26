@@ -76,7 +76,7 @@ public class DrawLCD extends JPanel{
     	super.paintComponent(g);
   
     	g.setColor(Color.black);
-    	for(int i = 0; i < 32; i++) {
+    	for(int i = 0; i < tab.length; i++) {
     		g.drawPolygon(tab[i].getPoly());
     	}
     	
@@ -97,5 +97,17 @@ public class DrawLCD extends JPanel{
     
     public CarreLCD[] getTab() {
     	return this.tab;
+    }
+    
+    public String getAffichage() {
+    	String res = "";
+    	for(int i = 0; i < tab.length; i++) {
+    		if(tab[i].estClique()) {
+    			res += tab[i].toString();
+    		}else {
+    			res += " ";
+    		}
+    	}
+    	return res;
     }
 }

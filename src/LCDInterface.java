@@ -49,6 +49,7 @@ public class LCDInterface {
 	private static boolean retour = false;
 	private static boolean finDraw = false;
 	private static boolean portChoix = false;
+	private static boolean finBoot = false;
 	
 	private static JPanel jp;
 	private static JTextField jtf;
@@ -62,6 +63,7 @@ public class LCDInterface {
 	private static JComboBox<String> portsAnimate;
 	private static JTextField charToDraw;
 	private static CarreLCD[] tab;
+	private static DrawLCD animatelcd;
 
 	private static final URL url = System.class.getResource("/images/icon.png");
 	private static final Image image = Toolkit.getDefaultToolkit().getImage(url);
@@ -176,17 +178,17 @@ public class LCDInterface {
 		bas.add(erreurPort);
 		
 		JLabel version = new JLabel();
-		version.setText("LCD User Interface V1.6");
+		version.setText("LCD User Interface V1.7");
 		version.setVisible(true);
 		
 		JMenuBar menuBar = new JMenuBar();
 		JMenu menu = new JMenu("Options");
 		save = new JCheckBoxMenuItem ("Save");
 		save.setToolTipText("Save your choice");
-		draw = new JMenuItem("Draw [Beta]");
+		draw = new JMenuItem("Draw");
 		draw.setToolTipText("Create your own drawing");
 		
-		animate = new JMenuItem("Animate [Alpha]");
+		animate = new JMenuItem("Animate [Beta]");
 		draw.setToolTipText("Animate your own drawing");
 		
 		menu.add(animate);
@@ -207,6 +209,7 @@ public class LCDInterface {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFrame animateFrame = new JFrame("Choose your port");
+				animateFrame.setIconImage(image);
 				animateFrame.setSize(300, 100);
 				JPanel main = new JPanel();
 				JButton animateConnect = new JButton("Connect");
@@ -219,6 +222,7 @@ public class LCDInterface {
 				for(int i = 0; i < portNamesAnimate.length; i++) {
 					portsAnimate.addItem(portNamesAnimate[i].getSystemPortName());
 				}
+				
 				//Listener sur JButton
 				animateConnect.addActionListener(new ActionListener() {
 					@Override
@@ -231,9 +235,10 @@ public class LCDInterface {
 							portsAnimate.setEnabled(false);
 							
 							//Nouvelle frame contenant les objets pour l'animation
-							JFrame animateFrameFinal = new JFrame("Aniamte [Alpha]");
+							JFrame animateFrameFinal = new JFrame("Animate [Beta]");
 							animateFrameFinal.setSize(600, 400);
 							animateFrameFinal.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+							animateFrameFinal.setIconImage(image);
 							animateFrameFinal.setVisible(true);
 							
 							//JComboBox qui contient le nombres de slots
@@ -259,8 +264,8 @@ public class LCDInterface {
 							JLabel textDelay = new JLabel("Delay : ");
 							
 							//Panel pour dessiner ses characteres
-							DrawLCD drawlcd = new DrawLCD();
-							drawlcd.setPreferredSize(new Dimension(600,150));
+							animatelcd = new DrawLCD();
+							animatelcd.setPreferredSize(new Dimension(600,150));
 							
 							//JPanel main
 							JPanel main = new JPanel();
@@ -302,12 +307,13 @@ public class LCDInterface {
 							middleTotal.add(middle,BorderLayout.CENTER);
 							middleTotal.add(bottom,BorderLayout.SOUTH);
 							
-							main.add(drawlcd);
+							main.add(animatelcd);
 							main.add(middleTotal);
 							
 							animateFrameFinal.add(main);
 							
 							ArrayList<AnimationLCD> tabAnimations = new ArrayList<AnimationLCD>();
+							ArrayList<String> tabMessages = new ArrayList<String>();
 							charToDraw = jtfChar;
 							
 							//Listener du bouton add
@@ -317,14 +323,15 @@ public class LCDInterface {
 									if(jtfChar.getText().length() == 1 && jtfDelay.getText().length() <= 5) {
 										int delayChoisi = 100;
 										int slotChoisi = slot.getSelectedIndex()+1;
-										
+										String msg = animatelcd.getAffichage();
 										try {
 											delayChoisi = Integer.parseInt(jtfDelay.getText());
 										}catch(NumberFormatException nfe) {
 											System.out.println("Ce n'est pas un chiffre");
 										}
 										
-										tabAnimations.add(new AnimationLCD(slotChoisi, delayChoisi, drawlcd.getTab()));
+										tabAnimations.add(new AnimationLCD(slotChoisi, delayChoisi));
+										tabMessages.add(msg);
 										slot.removeItemAt(slot.getSelectedIndex());
 									}
 								}	
@@ -334,21 +341,41 @@ public class LCDInterface {
 							jbAnimate.addActionListener(new ActionListener() {
 								@Override
 								public void actionPerformed(ActionEvent e) {
-									System.out.println("1");
+									PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
 									if(jbAnimate.getText().equals("Animate")) {
-										System.out.println("2");
 										jbAnimate.setText("Stop Animation");
-										//while(true) {
-											System.out.println("3");
-											if(!tabAnimations.isEmpty()) {
-												for(int i = 0; i < tabAnimations.size(); i++) {
-													tabAnimations.get(i).sendAnimation(portChoisi);
+										if(portChoisi.openPort() && checkPort(portChoisi)) {
+											Thread thread = new Thread(){
+												@Override public void run() {
+													try {
+														Thread.sleep(100); 
+													} catch(Exception e) {
+														
+													}
+
+													while(true) {
+														for(int i = 0; i < tabAnimations.size(); i++) {
+															int delay = tabAnimations.get(i).getDelay();
+															
+															for(int j = 0; j < tabMessages.size(); j++) {
+																output.print(tabMessages.get(j));
+																output.flush();
+																
+																try {
+																	Thread.sleep(delay);
+																}catch(Exception excep) {
+																	
+																}
+															}
+														}
+													}
 												}
-											}else {
-												System.out.println("impossible, liste vide");
-											}
-										//}
+											};
+											thread.start();
+										}
 									}else if(jbAnimate.getText().equals("Stop Animation")) {
+										output.print("                                ");
+										output.flush();
 										jbAnimate.setText("Animate");
 									}
 								}
@@ -372,6 +399,20 @@ public class LCDInterface {
 					}
 				});
 				
+				//Listener window
+				animateFrame.addWindowListener(new WindowAdapter() {
+					public void windowClosing(WindowEvent e) {
+						animateFrame.setVisible(false);
+						animateFrame.dispose();
+						draw.setEnabled(true);
+						animate.setEnabled(true);
+						
+						if(portChoisi != null) {
+							portChoisi.closePort();
+						}
+					}
+				});
+				
 				main.add(portsAnimate);
 				main.add(animateConnect);
 				
@@ -385,164 +426,192 @@ public class LCDInterface {
 		draw.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				draw.setEnabled(false);
-				DrawLCD drawlcd = new DrawLCD();
-				drawlcd.setPreferredSize(new Dimension(600,150));
-				
-				JFrame frameDraw = new JFrame("Draw [Beta]");
-				frameDraw.setSize(600, 350);
-				frameDraw.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-				
-				JPanel main = new JPanel();
-				main.setLayout(new FlowLayout());
-				JPanel milieu = new JPanel();
-				JPanel milieuTT = new JPanel();
-				JPanel basError = new JPanel();
-				basError.setLayout(new BorderLayout());
-				milieuTT.setLayout(new BorderLayout());
-				JPanel bas = new JPanel();
-				JButton drawButton = new JButton("Draw");
-				JButton erase = new JButton("Erase all");
-				erase.setPreferredSize(new Dimension(100,35));
-				JLabel textDraw = new JLabel("Enter a character : ");
-				JLabel errorLength = new JLabel();
-				errorLength.setForeground(Color.red);
-				errorLength.setVisible(false);
-				charToDraw = new JTextField();
-				charToDraw.setColumns(2);
-				
+				JFrame drawFrameConnect = new JFrame("Choose your port");
+				drawFrameConnect.setIconImage(image);
+				drawFrameConnect.setSize(300, 100);
+				JPanel mainDraw = new JPanel();
+				JButton drawConnect = new JButton("Connect");
 				portsDraw = new JComboBox<String>();
+				
+				draw.setEnabled(false);
+				animate.setEnabled(false);
+				
 				SerialPort[] portNamesDraw = SerialPort.getCommPorts();
 				for(int i = 0; i < portNamesDraw.length; i++) {
 					portsDraw.addItem(portNamesDraw[i].getSystemPortName());
 				}
-
-				drawButton.addActionListener(new ActionListener() {
+				
+				mainDraw.add(portsDraw);
+				mainDraw.add(drawConnect);
+				
+				drawFrameConnect.add(mainDraw);
+				drawFrameConnect.setVisible(true);
+				
+				drawConnect.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						tab = drawlcd.getTab();
-						finDraw = false;
-						if(!portChoix) {
-							portChoisi = SerialPort.getCommPort(portsDraw.getSelectedItem().toString());
-							portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
-							portChoix = true;
-						}
+						portChoisi = SerialPort.getCommPort(portsDraw.getSelectedItem().toString());
+						portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 						
-						if(portChoisi.openPort() && checkPort(portChoisi)) {
-							Thread thread = new Thread(){
-								@Override public void run() {
-									try {
-										Thread.sleep(100); 
-									} catch(Exception e) {
-										
-									}
-	
-									PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
-									while(!finDraw) {
-										for(int i = 0; i < tab.length; i++) {
-											if(charToDraw.getText().length() == 1) {
-												output.print(tab[i]);
-												output.flush();
-												errorLength.setVisible(false);
-											}else if (charToDraw.getText().length() > 1){
-												errorLength.setText("ERROR, TOO MUCH ARGUMENTS");
-												errorLength.setVisible(true);
-											}else if (charToDraw.getText().length() < 1){
-												errorLength.setText("ERROR, NO ARGUMENT");
-												errorLength.setVisible(true);
+						drawConnect.setEnabled(false);
+						portsDraw.setEnabled(false);
+						
+						draw.setEnabled(false);
+						DrawLCD drawlcd = new DrawLCD();
+						drawlcd.setPreferredSize(new Dimension(600,150));
+						
+						JFrame frameDraw = new JFrame("Draw");
+						frameDraw.setSize(600, 350);
+						frameDraw.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+						frameDraw.setIconImage(image);
+						
+						JPanel main = new JPanel();
+						main.setLayout(new FlowLayout());
+						JPanel milieu = new JPanel();
+						JPanel milieuInter = new JPanel();
+						JPanel milieuTT = new JPanel();
+						milieuTT.setLayout(new BorderLayout());
+						JButton drawButton = new JButton("Draw");
+						JButton erase = new JButton("Erase all");
+						erase.setPreferredSize(new Dimension(100,35));
+						drawButton.setPreferredSize(new Dimension(100,35));
+						JLabel textDraw = new JLabel("Enter a character : ");
+						JLabel errorLength = new JLabel();
+						errorLength.setForeground(Color.red);
+						errorLength.setVisible(false);
+						charToDraw = new JTextField();
+						charToDraw.setColumns(2);
+
+						drawButton.addActionListener(new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								tab = drawlcd.getTab();
+								finDraw = false;
+								if(!portChoix) {
+									portChoisi = SerialPort.getCommPort(portsDraw.getSelectedItem().toString());
+									portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
+									portChoix = true;
+								}
+								
+								if(portChoisi.openPort() && checkPort(portChoisi)) {
+									Thread thread = new Thread(){
+										@Override public void run() {
+											try {
+												Thread.sleep(100); 
+											} catch(Exception e) {
+												
+											}
+			
+											PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
+											while(!finDraw) {
+												for(int i = 0; i < tab.length; i++) {
+													if(charToDraw.getText().length() == 1) {
+														output.print(tab[i]);
+														output.flush();
+														errorLength.setVisible(false);
+													}else if (charToDraw.getText().length() > 1){
+														errorLength.setText("ERROR, TOO MUCH ARGUMENTS");
+														errorLength.setVisible(true);
+													}else if (charToDraw.getText().length() < 1){
+														errorLength.setText("ERROR, NO ARGUMENT");
+														errorLength.setVisible(true);
+													}
+												}
+												
+												try {
+													Thread.sleep(100); 
+												} catch(Exception e) {
+													
+												}
 											}
 										}
-										
-										try {
-											Thread.sleep(100); 
-										} catch(Exception e) {
-											
-										}
-									}
+									};
+									thread.start();
 								}
-							};
-							thread.start();
-						}
-					}
-				});
-				
-				erase.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						tab = drawlcd.getTab();
-						finDraw = true;
+							}
+						});
 						
-						if(!portChoix) {
-							portChoisi = SerialPort.getCommPort(portsDraw.getSelectedItem().toString());
-							portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
-							portChoix = true;
-						}	
-						
-						for(int i = 0; i < tab.length; i++) {
-							tab[i].setEstClique(false);
-						}
-						
-						drawlcd.repaint();
-						
-						if(portChoisi.openPort() && checkPort(portChoisi)) {
-							Thread thread = new Thread(){
-								@Override public void run() {
-									
-									PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
-									while(finDraw) {
-										output.print("                                ");
-										output.flush();
-									
-										try {
-											Thread.sleep(100); 
-										} catch(Exception e) {
-											
-										}
-									}
+						//Listener bouton erase
+						erase.addActionListener(new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								tab = drawlcd.getTab();
+								finDraw = true;
+								
+								if(!portChoix) {
+									portChoisi = SerialPort.getCommPort(portsDraw.getSelectedItem().toString());
+									portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
+									portChoix = true;
+								}	
+								
+								for(int i = 0; i < tab.length; i++) {
+									tab[i].setEstClique(false);
 								}
-							};
-							thread.start();
-						}
+								
+								drawlcd.repaint();
+								
+								if(portChoisi.openPort() && checkPort(portChoisi)) {
+									Thread thread = new Thread(){
+										@Override public void run() {
+											
+											PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
+											while(finDraw) {
+												output.print("                                ");
+												output.flush();
+											
+												try {
+													Thread.sleep(100); 
+												} catch(Exception e) {
+													
+												}
+											}
+										}
+									};
+									thread.start();
+								}
+								
+							}
+							
+						});
 						
-					}
-					
-				});
-				
-				portsDraw.setEnabled(true);
-				
-				bas.add(portsDraw);
-				bas.add(drawButton);
-				
-				milieu.add(textDraw);
-				milieu.add(charToDraw);
-				
-				basError.add(erase,BorderLayout.NORTH);
-				basError.add(errorLength,BorderLayout.CENTER);
-				
-				milieuTT.add(milieu,BorderLayout.NORTH);
-				milieuTT.add(bas,BorderLayout.CENTER);
-				milieuTT.add(basError,BorderLayout.SOUTH);
-				
-				main.add(drawlcd);
-				main.add(milieuTT);
-				
-				frameDraw.add(main);
-				frameDraw.setVisible(true);
-				frameDraw.setIconImage(image);
-				
-				frameDraw.addWindowListener(new WindowAdapter() {
-					public void windowClosing(WindowEvent e) {
-						draw.setEnabled(true);
-						frameDraw.setVisible(false);
-						frameDraw.dispose();
+						milieu.add(textDraw);
+						milieu.add(charToDraw);
+
+						milieuInter.add(drawButton);
+						milieuInter.add(erase);
 						
-						if(portChoisi != null)
-							portChoisi.closePort();
+						milieuTT.add(milieu,BorderLayout.NORTH);
+						milieuTT.add(milieuInter,BorderLayout.CENTER);
+						milieuTT.add(errorLength,BorderLayout.SOUTH);
+						
+						main.add(drawlcd);
+						main.add(milieuTT);
+						
+						frameDraw.add(main);
+						frameDraw.setVisible(true);
+						frameDraw.setIconImage(image);
+						
+						frameDraw.addWindowListener(new WindowAdapter() {
+							public void windowClosing(WindowEvent e) {
+								draw.setEnabled(true);
+								animate.setEnabled(true);
+								drawConnect.setEnabled(true);
+								portsDraw.setEnabled(true);
+								frameDraw.setVisible(false);
+								frameDraw.dispose();
+								
+								if(portChoisi != null)
+									portChoisi.closePort();
+							}
+						});
 					}
 				});
+				//Fin Fonctionnalité Draw
+						
 			}
+					
 		});
-		//Fin Fonctionnalité Draw
+					
 		
 		//Fonctionnalité Save
 		save.addActionListener(new ActionListener() {

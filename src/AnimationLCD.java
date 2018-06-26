@@ -25,44 +25,21 @@ public class AnimationLCD {
 	 * 				le tableau de caractere
 	 */
 	
-	public AnimationLCD(int slot, int delay, CarreLCD[] tab) {
+	public AnimationLCD(int slot, int delay) {
 		this.place = slot;
 		this.temps = delay;
-		this.caracteres = tab;
+		//this.caracteres = tab;
 	}
 	
-	/**
-	 * Methode sendAnimation
-	 * @param output
-	 * 				la sortie pour print
-	 * Permet d'envoyer une animation
-	 */
+	public int getSlot() {
+		return this.place;
+	}
 	
-	public void sendAnimation(SerialPort port) {
-		Thread thread = new Thread(){
-			@Override 
-			public void run() {
-				try {
-					Thread.sleep(100);
-				}catch(Exception e){
-					
-				}
-				
-				PrintWriter output = new PrintWriter(port.getOutputStream());
-				
-				for(int i = 0; i < caracteres.length; i++) {
-					output.print(caracteres[i]);
-					output.flush();
-					System.out.println("ok");
-					
-					try {
-						Thread.sleep(temps);
-					}catch(Exception e){
-						
-					}
-				}
-			}
-		};
-		thread.start();
+	public int getDelay() {
+		return this.temps;
+	}
+	
+	public CarreLCD[] getTabChar() {
+		return this.caracteres;
 	}
 }
