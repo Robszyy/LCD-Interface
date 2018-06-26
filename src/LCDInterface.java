@@ -178,7 +178,7 @@ public class LCDInterface {
 		bas.add(erreurPort);
 		
 		JLabel version = new JLabel();
-		version.setText("LCD User Interface V1.7");
+		version.setText("LCD User Interface V1.8");
 		version.setVisible(true);
 		
 		JMenuBar menuBar = new JMenuBar();
