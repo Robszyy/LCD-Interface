@@ -284,8 +284,8 @@ public class LCDInterface {
 							animateFrameFinal.setVisible(true);
 							
 							//JComboBox qui contient le nombres de slots
-							String[] nbSlots = new String[32];
-							for(int i = 0; i < 32; i++) {
+							String[] nbSlots = new String[64];
+							for(int i = 0; i < 64; i++) {
 								nbSlots[i] = (i+1)+"";
 							}
 							
@@ -391,25 +391,32 @@ public class LCDInterface {
 							jbAdd.addActionListener(new ActionListener() {
 								@Override
 								public void actionPerformed(ActionEvent e) {
+									errorLoad.setVisible(false);
 									if(jtfChar.getText().length() == 1 && jtfDelay.getText().length() <= 5) {
 										if(!tabAnimations.isEmpty() && !tabMessages.isEmpty() && iterator == 0) {
 											tabAnimations.clear();
 											tabMessages.clear();
 										}
-										
-										int delayChoisi = 100;
-										int slotChoisi = slot.getSelectedIndex()+1;
-										String msg = animatelcd.getAffichage();
+									
 										try {
+											int delayChoisi = 100;
+											int slotChoisi = slot.getSelectedIndex()+1;
+											String msg = animatelcd.getAffichage();
+											
 											delayChoisi = Integer.parseInt(jtfDelay.getText());
+											
+											tabAnimations.add(new AnimationLCD(slotChoisi, delayChoisi));
+											tabMessages.add(msg);
+											slot.removeItemAt(slot.getSelectedIndex());
+											nbAnimations++;
+											iterator++;
 										}catch(NumberFormatException nfe) {
-											System.out.println("Ce n'est pas un chiffre");
+											errorLoad.setText("Error, please enter a valid delay");
+											errorLoad.setVisible(true);
 										}
-										tabAnimations.add(new AnimationLCD(slotChoisi, delayChoisi));
-										tabMessages.add(msg);
-										slot.removeItemAt(slot.getSelectedIndex());
-										nbAnimations++;
-										iterator++;
+									}else if (jtfChar.getText().length() != 1) {
+										errorLoad.setText("Error, please enter a valid character");
+										errorLoad.setVisible(true);
 									}
 								}	
 							});
@@ -418,44 +425,54 @@ public class LCDInterface {
 							jbAnimate.addActionListener(new ActionListener() {
 								@Override
 								public void actionPerformed(ActionEvent e) {
+									errorLoad.setVisible(false);
 									PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
 									if(jbAnimate.getText().equals("Animate")) {
-										finAnime = false;
-										jbAnimate.setText("Stop Animation");
-										if(portChoisi.openPort() && checkPort(portChoisi)) {
-											Thread thread = new Thread(){
-												@Override public void run() {
-													try {
-														Thread.sleep(100); 
-													} catch(Exception e) {
-														
-													}
-
-													while(!finAnime) {
-														for(int i = 0; i < tabAnimations.size(); i++) {
-															int delay = tabAnimations.get(i).getDelay();
+										if(tabAnimations.isEmpty() && tabMessages.isEmpty()) {
+											errorLoad.setText("Error, no frame have been added");
+											errorLoad.setVisible(true);
+										}else {
+											finAnime = false;
+											jbAnimate.setText("Stop Animation");
+											
+											
+												
+											if(portChoisi.openPort() && checkPort(portChoisi)) {
+												Thread thread = new Thread(){
+													@Override public void run() {
+														try {
+															Thread.sleep(100); 
+														} catch(Exception e) {
 															
-															for(int j = 0; j < tabMessages.size(); j++) {
-																output.print(tabMessages.get(j));
-																output.flush();
+														}
+	
+														while(!finAnime) {
+															for(int i = 0; i < tabAnimations.size(); i++) {
+																int delay = tabAnimations.get(i).getDelay();
 																
-																try {
-																	Thread.sleep(delay);
-																}catch(Exception excep) {
+																for(int j = 0; j < tabMessages.size(); j++) {
+																	output.print(tabMessages.get(j));
+																	output.flush();
 																	
+																	try {
+																		Thread.sleep(delay);
+																	}catch(Exception excep) {
+																		
+																	}
 																}
 															}
-														}
-														if(finAnime) {
-															break;
+															if(finAnime) {
+																break;
+															}
 														}
 													}
-												}
-											};
-											thread.start();
+												};
+												thread.start();
+											}
 										}
 									}else if(jbAnimate.getText().equals("Stop Animation")) {
 										finAnime = true;
+										errorLoad.setVisible(false);
 										if(portChoisi.openPort() && checkPort(portChoisi)) {
 											Thread thread = new Thread(){
 												@Override public void run() {
