@@ -83,6 +83,11 @@ public class LCDInterface {
 	private static JTextField charToDraw;
 	private static CarreLCD[] tab;
 	private static DrawLCD animatelcd;
+	
+	private static JRadioButton jrb1 = new JRadioButton("Date & Time");
+	private static JRadioButton jrb2 = new JRadioButton("Send text");
+	private static JRadioButton jrb3 = new JRadioButton("Animations");
+	private static JRadioButton jrb4 = new JRadioButton("Hardware Informations");
 
 	private static final URL url = System.class.getResource("/images/icon.png");
 	private static final Image image = Toolkit.getDefaultToolkit().getImage(url);
@@ -257,6 +262,12 @@ public class LCDInterface {
 				JButton animateConnect = new JButton("Connect");
 				portsAnimate = new JComboBox<String>();
 				
+				jrb1.setEnabled(false);
+				jrb2.setEnabled(false);
+				jrb3.setEnabled(false);
+				jrb4.setEnabled(false);
+				connectButton.setEnabled(false);
+				ports.setEnabled(false);
 				draw.setEnabled(false);
 				animate.setEnabled(false);
 				
@@ -275,6 +286,7 @@ public class LCDInterface {
 						if(portChoisi.openPort() && checkPort(portChoisi)) {
 							animateConnect.setEnabled(false);
 							portsAnimate.setEnabled(false);
+							
 							
 							//Nouvelle frame contenant les objets pour l'animation
 							JFrame animateFrameFinal = new JFrame("Animate");
@@ -416,6 +428,9 @@ public class LCDInterface {
 										}
 									}else if (jtfChar.getText().length() != 1) {
 										errorLoad.setText("Error, please enter a valid character");
+										errorLoad.setVisible(true);
+									}else if(jtfDelay.getText().length() > 5){
+										errorLoad.setText("Error, please enter a valid delay (not up to 99999 milliseconds)");
 										errorLoad.setVisible(true);
 									}
 								}	
@@ -656,6 +671,13 @@ public class LCDInterface {
 						draw.setEnabled(true);
 						animate.setEnabled(true);
 						
+						jrb1.setEnabled(true);
+						jrb2.setEnabled(true);
+						jrb3.setEnabled(true);
+						jrb4.setEnabled(true);
+						connectButton.setEnabled(true);
+						ports.setEnabled(true);
+						
 						if(portChoisi != null) {
 							portChoisi.closePort();
 						}
@@ -683,6 +705,12 @@ public class LCDInterface {
 				JButton drawConnect = new JButton("Connect");
 				portsDraw = new JComboBox<String>();
 				
+				jrb1.setEnabled(false);
+				jrb2.setEnabled(false);
+				jrb3.setEnabled(false);
+				jrb4.setEnabled(false);
+				connectButton.setEnabled(false);
+				ports.setEnabled(false);
 				draw.setEnabled(false);
 				animate.setEnabled(false);
 				
@@ -702,6 +730,17 @@ public class LCDInterface {
 					public void windowClosing(WindowEvent e) {
 						draw.setEnabled(true);
 						animate.setEnabled(true);
+						
+						jrb1.setEnabled(true);
+						jrb2.setEnabled(true);
+						jrb3.setEnabled(true);
+						jrb4.setEnabled(true);
+						connectButton.setEnabled(true);
+						ports.setEnabled(true);
+						
+						connectButton.setEnabled(true);
+						ports.setEnabled(true);
+						
 						drawFrameConnect.setVisible(false);
 						drawFrameConnect.dispose();
 						
@@ -730,16 +769,22 @@ public class LCDInterface {
 						
 						JPanel main = new JPanel();
 						main.setLayout(new FlowLayout());
+						
 						JPanel milieu = new JPanel();
 						JPanel milieuInter = new JPanel();
+						JPanel errorPanel = new JPanel();
+						
 						JPanel milieuTT = new JPanel();
 						milieuTT.setLayout(new BorderLayout());
+						
 						JButton drawButton = new JButton("Draw");
 						JButton erase = new JButton("Erase all");
 						erase.setPreferredSize(new Dimension(100,35));
 						drawButton.setPreferredSize(new Dimension(100,35));
+						
 						JLabel textDraw = new JLabel("Enter a character : ");
 						JLabel errorLength = new JLabel();
+						
 						errorLength.setForeground(Color.red);
 						errorLength.setVisible(false);
 						charToDraw = new JTextField();
@@ -773,10 +818,10 @@ public class LCDInterface {
 														output.flush();
 														errorLength.setVisible(false);
 													}else if (charToDraw.getText().length() > 1){
-														errorLength.setText("ERROR, TOO MUCH ARGUMENTS");
+														errorLength.setText("Error, please enter a valid character");
 														errorLength.setVisible(true);
 													}else if (charToDraw.getText().length() < 1){
-														errorLength.setText("ERROR, NO ARGUMENT");
+														errorLength.setText("Error, please enter a valid character");
 														errorLength.setVisible(true);
 													}
 												}
@@ -843,9 +888,11 @@ public class LCDInterface {
 						milieuInter.add(drawButton);
 						milieuInter.add(erase);
 						
+						errorPanel.add(errorLength);
+						
 						milieuTT.add(milieu,BorderLayout.NORTH);
 						milieuTT.add(milieuInter,BorderLayout.CENTER);
-						milieuTT.add(errorLength,BorderLayout.SOUTH);
+						milieuTT.add(errorPanel,BorderLayout.SOUTH);
 						
 						main.add(drawlcd);
 						main.add(milieuTT);
@@ -858,6 +905,7 @@ public class LCDInterface {
 							public void windowClosing(WindowEvent e) {
 								drawConnect.setEnabled(true);
 								portsDraw.setEnabled(true);
+								
 								frameDraw.setVisible(false);
 								frameDraw.dispose();
 								
@@ -891,7 +939,6 @@ public class LCDInterface {
 		
 		//On crée le JPanel du haut qui va contenir les JRadioButton
 		JPanel haut = new JPanel();
-		JRadioButton jrb1 = new JRadioButton("Date & Time");
 		jrb1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(portChoisi != null)
@@ -913,7 +960,7 @@ public class LCDInterface {
 				save.setSelected(false);
 			}
 		});
-		JRadioButton jrb2 = new JRadioButton("Send text");
+		
 		jrb2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(portChoisi != null)
@@ -935,7 +982,7 @@ public class LCDInterface {
 				save.setSelected(false);
 			}
 		});
-		JRadioButton jrb3 = new JRadioButton("Animations");
+		
 		jrb3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(portChoisi != null)
@@ -958,8 +1005,6 @@ public class LCDInterface {
 			}
 		});
 		
-		
-		JRadioButton jrb4 = new JRadioButton("Hardware Informations");
 		jrb4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(portChoisi != null)
