@@ -1,6 +1,7 @@
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
@@ -23,6 +24,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,6 +38,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -41,6 +46,7 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
@@ -62,6 +68,7 @@ public class LCDInterface {
 	private static boolean finAnime = false;
 	
 	private static int nbAnimations = 0;
+	private static int iterator = 0;
 	
 	private static JPanel jp;
 	private static JTextField jtf;
@@ -190,7 +197,7 @@ public class LCDInterface {
 		bas.add(erreurPort);
 		
 		JLabel version = new JLabel();
-		version.setText("LCD User Interface V1.9");
+		version.setText("LCD User Interface V2.0");
 		version.setVisible(true);
 		
 		JMenuBar menuBar = new JMenuBar();
@@ -201,14 +208,18 @@ public class LCDInterface {
 		draw = new JMenuItem("Draw");
 		draw.setToolTipText("Create your own drawing");
 		
-		animate = new JMenuItem("Animate [Beta]");
-		draw.setToolTipText("Animate your own drawing");
+		animate = new JMenuItem("Animate");
+		animate.setToolTipText("Create your own animation");
+		
+		JMenuItem reportItem = new JMenuItem("Report bug");
+		reportItem.setToolTipText("Report a bug");
 		
 		menuOptions.add(animate);
 		menuOptions.addSeparator();
 		menuOptions.add(draw);
 		menuOptions.addSeparator();
 		menuOptions.add(save);
+		menuHelp.add(reportItem);
 		
 		menuBar.add(menuOptions);
 		menuBar.add(menuHelp);
@@ -216,6 +227,23 @@ public class LCDInterface {
 		
 		animate.setEnabled(true);
 		draw.setEnabled(true);
+		
+		//Fonctionnalité Report Bug
+		reportItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFrame errorFrame = new JFrame();
+				errorFrame.setVisible(false);
+				try {
+					Desktop desktop = java.awt.Desktop.getDesktop();
+					URI reportURL = new URI("https://www.google.com");
+					desktop.browse(reportURL);
+				} catch (Exception e1) {
+					errorFrame.setVisible(true);
+					JOptionPane.showMessageDialog(errorFrame, "Error, impossible to report bug, please retry later");
+				} 
+			}
+			
+		});
 		
 		//Fonctionnalité Animate
 		//Listener sur MenuItem
@@ -249,7 +277,7 @@ public class LCDInterface {
 							portsAnimate.setEnabled(false);
 							
 							//Nouvelle frame contenant les objets pour l'animation
-							JFrame animateFrameFinal = new JFrame("Animate [Beta]");
+							JFrame animateFrameFinal = new JFrame("Animate");
 							animateFrameFinal.setSize(600, 400);
 							animateFrameFinal.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 							animateFrameFinal.setIconImage(image);
@@ -285,6 +313,9 @@ public class LCDInterface {
 							JLabel textSlot = new JLabel("Slot : ");
 							JLabel textChar = new JLabel("Character : ");
 							JLabel textDelay = new JLabel("Delay : ");
+							JLabel errorLoad = new JLabel("Error, the file seems to be damaged or wrong");
+							errorLoad.setForeground(Color.red);
+							errorLoad.setVisible(false);
 							
 							//Panel pour dessiner ses characteres
 							animatelcd = new DrawLCD();
@@ -298,6 +329,8 @@ public class LCDInterface {
 							JPanel panelSlot = new JPanel();
 							JPanel panelChar = new JPanel();
 							JPanel panelDelay = new JPanel();
+							JPanel buttonsLabel = new JPanel();
+							buttonsLabel.setLayout(new BorderLayout());
 							
 							//JPanel middle
 							JPanel middle = new JPanel();
@@ -336,8 +369,11 @@ public class LCDInterface {
 							bottomSaveLoad.add(jbSave);
 							bottomSaveLoad.add(jbLoad);
 							
+							buttonsLabel.add(bottomSaveLoad,BorderLayout.CENTER);
+							buttonsLabel.add(errorLoad,BorderLayout.SOUTH);
+							
 							bottomLast.add(bottom,BorderLayout.CENTER);
-							bottomLast.add(bottomSaveLoad,BorderLayout.SOUTH);
+							bottomLast.add(buttonsLabel,BorderLayout.SOUTH);
 							
 							middleTotal.add(middle,BorderLayout.CENTER);
 							middleTotal.add(bottomLast,BorderLayout.SOUTH);
@@ -356,6 +392,10 @@ public class LCDInterface {
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									if(jtfChar.getText().length() == 1 && jtfDelay.getText().length() <= 5) {
+										if(!tabAnimations.isEmpty() && !tabMessages.isEmpty() && iterator == 0) {
+											tabAnimations.clear();
+											tabMessages.clear();
+										}
 										
 										int delayChoisi = 100;
 										int slotChoisi = slot.getSelectedIndex()+1;
@@ -369,6 +409,7 @@ public class LCDInterface {
 										tabMessages.add(msg);
 										slot.removeItemAt(slot.getSelectedIndex());
 										nbAnimations++;
+										iterator++;
 									}
 								}	
 							});
@@ -405,6 +446,9 @@ public class LCDInterface {
 																}
 															}
 														}
+														if(finAnime) {
+															break;
+														}
 													}
 												}
 											};
@@ -420,14 +464,19 @@ public class LCDInterface {
 													} catch(Exception e) {
 														
 													}
-													
-													output.print("                                ");
-													output.flush();
+													while(finAnime) {
+														output.print("                                ");
+														output.flush();
+																
+														try {
+															Thread.sleep(100);
+														}catch(Exception excep) {
 															
-													try {
-														Thread.sleep(100);
-													}catch(Exception excep) {
+														}
 														
+														if(!finAnime) {
+															break;
+														}
 													}
 												}
 											};
@@ -450,6 +499,7 @@ public class LCDInterface {
 									if (fileChooser.showSaveDialog(frameDialog) == JFileChooser.APPROVE_OPTION) {
 									  File file = fileChooser.getSelectedFile();
 									  try {
+										errorLoad.setVisible(false);
 										String path = file.getPath() + ".lcd";
 										file = new File(path);
 										
@@ -481,8 +531,12 @@ public class LCDInterface {
 										writer.close();
 																		
 									  } catch (FileNotFoundException e2) {
+										errorLoad.setText("An error occurred during encoding, please retry");
+										errorLoad.setVisible(true);
 										e2.printStackTrace();
 									  } catch (IOException e1) {
+										errorLoad.setText("An error occurred during encoding, please retry");
+										errorLoad.setVisible(true);
 										e1.printStackTrace();
 									  }
 									}
@@ -508,10 +562,11 @@ public class LCDInterface {
 											ArrayList<String> listMessage = new ArrayList<String>();
 											
 											if(buff.readLine().equals("start")) {
+												errorLoad.setVisible(false);
 												while((line = buff.readLine()) != null) {
 													if(line.equals("Nombres de slots : ")) {
 														slots = buff.readLine();
-														System.out.println(slots);
+														line = buff.readLine();
 													}else if(line.equals("Messages : ")){
 														line = buff.readLine();
 														while(!line.isEmpty()) {
@@ -542,14 +597,17 @@ public class LCDInterface {
 													}
 												}
 											}else {
-												System.out.println("Fichier non valide");
+												errorLoad.setText("Error, the file seems to be damaged or wrong");
+												errorLoad.setVisible(true);
 												buff.close();
 											}
 										
 										} catch (FileNotFoundException e1) {
-											e1.printStackTrace();
+											errorLoad.setText("Error, file not found");
+											errorLoad.setVisible(true);
 										} catch (IOException e1) {
-											e1.printStackTrace();
+											errorLoad.setText("Error, the file seems to be damaged or wrong");
+											errorLoad.setVisible(true);
 										}
 									}
 								}
@@ -953,27 +1011,14 @@ public class LCDInterface {
 									PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
 										
 									while(true) {
-										if(enregistrer) {
-											output.print("  ");
-											output.flush();
-											enregistrer = false;
-										}else {
-											output.print(new SimpleDateFormat("    HH:mm:ss      dd MMMMMMM yyyy").format(new Date()));
-											output.flush();
-											if(retour) {
-												output.print("yyy");
-												output.flush();
-												retour = false;
-											}
-										}
-											
+										output.print(new SimpleDateFormat("    HH:mm:ss      dd MMMMMMM yyyy").format(new Date()));
+										output.flush();
 										try {
-											Thread.sleep(100); 
+											Thread.sleep(1000); 
 										} catch(Exception e) {
 												
 										}
-									}
-										
+									}	
 								}
 							};
 							thread.start();
@@ -981,7 +1026,7 @@ public class LCDInterface {
 							erreurPort.setVisible(true);
 						}
 					}else if (cpuinfos) {
-						if(portChoisi.openPort()) {
+						if(portChoisi.openPort() && checkPort(portChoisi)) {
 							connectButton.setText("Disconnect");
 							ports.setEnabled(false);
 							
@@ -997,15 +1042,17 @@ public class LCDInterface {
 									while(true) {
 										//output.print("Processors :    " +Runtime.getRuntime().availableProcessors() +" cores");
 										//output.flush();
-										
+
 										output.print("CPU usage : " +String.valueOf(getCPUusage()) +"%");
-										if (getCPUusage() < 9)
+										if (getCPUusage() < 10) {
 											output.print("  RAM usage : " +String.valueOf(getRAMusage()) +"%");
-										else
+											output.flush();
+										}else {
 											output.print(" RAM usage : " +String.valueOf(getRAMusage()) +"%");
 											output.flush();
+										}
 										try {
-											Thread.sleep(100); 
+											Thread.sleep(1000); 
 										} catch(Exception e) {
 											
 										}
@@ -1015,7 +1062,7 @@ public class LCDInterface {
 							thread.start();
 						}
 					}else if (animations) {
-						if(portChoisi.openPort()) {
+						if(portChoisi.openPort() && checkPort(portChoisi)) {
 							connectButton.setText("Disconnect");
 							ports.setEnabled(false);
 							
@@ -1029,7 +1076,7 @@ public class LCDInterface {
 	
 									PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
 									while(true) {
-										output.print(" ");
+										output.print("       ");
 										output.flush();
 										try {
 											Thread.sleep(100); 
@@ -1046,7 +1093,7 @@ public class LCDInterface {
 					portChoisi = SerialPort.getCommPort(ports.getSelectedItem().toString());
 					portChoisi.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 						if(textSender) {
-							if(portChoisi.openPort()) {
+							if(portChoisi.openPort() && checkPort(portChoisi)) {
 								Thread thread = new Thread(){
 									@Override public void run() {
 										try {
@@ -1072,7 +1119,6 @@ public class LCDInterface {
 							}
 						}
 				} else if (connectButton.getText().equals("Disconnect")){
-					// On se deconnect du port et on change le text du bouton pour refaire la manipulation
 					portChoisi.closePort();
 					ports.setEnabled(true);
 					connectButton.setText("Connect");

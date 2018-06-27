@@ -27,7 +27,30 @@ byte etoile[8]={
   B00000
 };
 
+byte smiley[8] = {
+  B00000,
+  B10001,
+  B00000,
+  B00000,
+  B10001,
+  B01110,
+  B00000,
+};
+
+byte monstre[8]={
+  B00000,
+  B01010,
+  B11111,
+  B11111,
+  B11111,
+  B01110,
+  B00100,
+  B00000
+};
+
 void setupChar(){
+   lcd.createChar(1, smiley);
+   lcd.createChar(2, monstre);
    lcd.createChar(4, etoile);
    lcd.createChar(3, coeur);
 }
@@ -503,8 +526,8 @@ void animationBonjour(){
  //Animation
  lcd.clear();
 
- lcd.setCursor(4, 0);
- lcd.print("Bonjour!");
+ lcd.setCursor(5, 0);
+ lcd.print("Hello!");
  delay(2000);
 
  lcd.clear();
@@ -792,3 +815,25 @@ void animationEtoile(){
 	  delay(150);
   }
 }
+
+ void animationBooting(){
+  //Animation
+  lcd.begin(16,2);
+
+  lcd.setCursor(3,0);
+  lcd.print("Booting");
+  delay(250);
+
+  lcd.setCursor(3,0);
+  lcd.print("Booting.");
+  delay(250);
+
+  lcd.setCursor(3,0);
+  lcd.print("Booting..");
+  delay(250);
+
+  lcd.setCursor(3,0);
+  lcd.print("Booting...");
+  delay(250);
+}
+
