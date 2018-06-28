@@ -57,6 +57,11 @@ import javax.swing.UnsupportedLookAndFeelException;
 import com.fazecast.jSerialComm.SerialPort;
 import com.sun.management.OperatingSystemMXBean;
 
+/**
+ * 
+ * @author Robin_prgn
+ *
+ */
 
 public class LCDInterface {
 	private static SerialPort portChoisi;

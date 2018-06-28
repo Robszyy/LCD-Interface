@@ -12,7 +12,7 @@ import javax.swing.JPanel;
  */
 
 /**
- * @author Robin
+ * @author Robin_prgn
  *
  */
 public class DrawLCD extends JPanel{
