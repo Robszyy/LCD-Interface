@@ -298,7 +298,7 @@ public class LCDInterface {
 							
 							//Nouvelle frame contenant les objets pour l'animation
 							JFrame animateFrameFinal = new JFrame("Animate");
-							animateFrameFinal.setSize(600, 500);
+							animateFrameFinal.setSize(600, 400);
 							animateFrameFinal.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 							animateFrameFinal.setIconImage(image);
 							animateFrameFinal.setVisible(true);
@@ -390,11 +390,7 @@ public class LCDInterface {
 							
 							bottom.add(jbAdd);
 							bottom.add(jbAnimate);
-							
-							panelButtonErase.add(eraseAll);
-							
-							panelButtonUp.add(bottom,BorderLayout.NORTH);
-							panelButtonUp.add(panelButtonErase,BorderLayout.CENTER);
+							bottom.add(eraseAll);
 							
 							bottomSaveLoad.add(jbSave);
 							bottomSaveLoad.add(jbLoad);
@@ -402,7 +398,7 @@ public class LCDInterface {
 							buttonsLabel.add(bottomSaveLoad,BorderLayout.CENTER);
 							buttonsLabel.add(errorLoad,BorderLayout.SOUTH);
 							
-							bottomLast.add(panelButtonUp,BorderLayout.CENTER);
+							bottomLast.add(bottom,BorderLayout.CENTER);
 							bottomLast.add(buttonsLabel,BorderLayout.SOUTH);
 							
 							middleTotal.add(middle,BorderLayout.CENTER);
@@ -669,30 +665,32 @@ public class LCDInterface {
 							eraseAll.addActionListener(new ActionListener() {
 								@Override
 								public void actionPerformed(ActionEvent e) {
-									tabAnimations.clear();
-									tabMessages.clear();
-									jtfChar.setText("");
-									jtfDelay.setText("");
-									String[] nbSlotRep = new String[64];
-									
-									for(int i = 0; i < nbSlotRep.length; i++) {
-										nbSlotRep[i] = (i+1)+"";
+									if(!tabAnimations.isEmpty() && !tabMessages.isEmpty()) {
+										tabAnimations.clear();
+										tabMessages.clear();
+										jtfChar.setText("");
+										jtfDelay.setText("");
+										String[] nbSlotRep = new String[64];
+										
+										for(int i = 0; i < nbSlotRep.length; i++) {
+											nbSlotRep[i] = (i+1)+"";
+										}
+										
+										comboRep = new JComboBox(nbSlotRep);
+										panelSlot.remove(slot);
+										panelSlot.add(comboRep);
+										animateFrameFinal.setSize(600, 401);
+										animateFrameFinal.setSize(600, 400);
+										
+										CarreLCD[] tab = new CarreLCD[32];
+										tab = animatelcd.getTab();
+										for(int i = 0; i < tab.length; i++) {
+											tab[i].setEstClique(false);
+										}
+										
+										animatelcd.setTab(tab);
+										animatelcd.repaint();
 									}
-									
-									comboRep = new JComboBox(nbSlotRep);
-									panelSlot.remove(slot);
-									panelSlot.add(comboRep);
-									animateFrameFinal.setSize(600, 501);
-									animateFrameFinal.setSize(600, 500);
-									
-									CarreLCD[] tab = new CarreLCD[32];
-									tab = animatelcd.getTab();
-									for(int i = 0; i < tab.length; i++) {
-										tab[i].setEstClique(false);
-									}
-									
-									animatelcd.setTab(tab);
-									animatelcd.repaint();
 								}
 								
 							});
