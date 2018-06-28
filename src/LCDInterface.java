@@ -50,6 +50,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
 import com.fazecast.jSerialComm.SerialPort;
 import com.sun.management.OperatingSystemMXBean;
 
@@ -70,6 +74,8 @@ public class LCDInterface {
 	private static int nbAnimations = 0;
 	private static int iterator = 0;
 	
+	private static String[] nbSlots;
+	
 	private static JPanel jp;
 	private static JTextField jtf;
 	private static JButton connectButton;
@@ -83,6 +89,8 @@ public class LCDInterface {
 	private static JTextField charToDraw;
 	private static CarreLCD[] tab;
 	private static DrawLCD animatelcd;
+	private static JComboBox slot;
+	private static JComboBox comboRep;
 	
 	private static JRadioButton jrb1 = new JRadioButton("Date & Time");
 	private static JRadioButton jrb2 = new JRadioButton("Send text");
@@ -171,7 +179,7 @@ public class LCDInterface {
 		frame.setLayout(new BorderLayout());
 		//frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
+			
 		//Menu déroulant
 		ports = new JComboBox<String>();
 		//On met le menu en version "grisée"
@@ -290,18 +298,18 @@ public class LCDInterface {
 							
 							//Nouvelle frame contenant les objets pour l'animation
 							JFrame animateFrameFinal = new JFrame("Animate");
-							animateFrameFinal.setSize(600, 400);
+							animateFrameFinal.setSize(600, 500);
 							animateFrameFinal.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 							animateFrameFinal.setIconImage(image);
 							animateFrameFinal.setVisible(true);
 							
 							//JComboBox qui contient le nombres de slots
-							String[] nbSlots = new String[64];
+							nbSlots = new String[64];
 							for(int i = 0; i < 64; i++) {
 								nbSlots[i] = (i+1)+"";
 							}
 							
-							JComboBox slot = new JComboBox(nbSlots);
+							slot = new JComboBox(nbSlots);
 							
 							//JTextField pour entrer son charactere
 							JTextField jtfChar = new JTextField();
@@ -315,6 +323,8 @@ public class LCDInterface {
 							JButton jbAdd = new JButton("Add");
 							//JButton pour lancer l'animation
 							JButton jbAnimate = new JButton("Animate");
+							//JButton pour effacer tout
+							JButton eraseAll = new JButton("Erase all");
 							//JButton pour enregistrer l'animation
 							JButton jbSave = new JButton("Save");
 							//JButton pour charger une animation
@@ -340,9 +350,12 @@ public class LCDInterface {
 							//JPanel pour chacune des fonctionnalités
 							JPanel panelSlot = new JPanel();
 							JPanel panelChar = new JPanel();
+							JPanel panelButtonErase = new JPanel();
 							JPanel panelDelay = new JPanel();
 							JPanel buttonsLabel = new JPanel();
 							buttonsLabel.setLayout(new BorderLayout());
+							JPanel panelButtonUp = new JPanel();
+							panelButtonUp.setLayout(new BorderLayout());
 							
 							//JPanel middle
 							JPanel middle = new JPanel();
@@ -378,13 +391,18 @@ public class LCDInterface {
 							bottom.add(jbAdd);
 							bottom.add(jbAnimate);
 							
+							panelButtonErase.add(eraseAll);
+							
+							panelButtonUp.add(bottom,BorderLayout.NORTH);
+							panelButtonUp.add(panelButtonErase,BorderLayout.CENTER);
+							
 							bottomSaveLoad.add(jbSave);
 							bottomSaveLoad.add(jbLoad);
 							
 							buttonsLabel.add(bottomSaveLoad,BorderLayout.CENTER);
 							buttonsLabel.add(errorLoad,BorderLayout.SOUTH);
 							
-							bottomLast.add(bottom,BorderLayout.CENTER);
+							bottomLast.add(panelButtonUp,BorderLayout.CENTER);
 							bottomLast.add(buttonsLabel,BorderLayout.SOUTH);
 							
 							middleTotal.add(middle,BorderLayout.CENTER);
@@ -577,6 +595,7 @@ public class LCDInterface {
 								
 							});
 							
+							//Listener du bouton Load
 							jbLoad.addActionListener(new ActionListener() {
 								@Override
 								public void actionPerformed(ActionEvent e) {
@@ -642,6 +661,38 @@ public class LCDInterface {
 											errorLoad.setVisible(true);
 										}
 									}
+								}
+								
+							});
+							
+							//Listener du bouton Erase
+							eraseAll.addActionListener(new ActionListener() {
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									tabAnimations.clear();
+									tabMessages.clear();
+									jtfChar.setText("");
+									jtfDelay.setText("");
+									String[] nbSlotRep = new String[64];
+									
+									for(int i = 0; i < nbSlotRep.length; i++) {
+										nbSlotRep[i] = (i+1)+"";
+									}
+									
+									comboRep = new JComboBox(nbSlotRep);
+									panelSlot.remove(slot);
+									panelSlot.add(comboRep);
+									animateFrameFinal.setSize(600, 501);
+									animateFrameFinal.setSize(600, 500);
+									
+									CarreLCD[] tab = new CarreLCD[32];
+									tab = animatelcd.getTab();
+									for(int i = 0; i < tab.length; i++) {
+										tab[i].setEstClique(false);
+									}
+									
+									animatelcd.setTab(tab);
+									animatelcd.repaint();
 								}
 								
 							});

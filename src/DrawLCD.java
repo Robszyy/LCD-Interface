@@ -99,6 +99,16 @@ public class DrawLCD extends JPanel{
     	return this.tab;
     }
     
+    /**
+     * Methode getTab
+     * @param newtab
+     * 				le tableau a passer en attribut
+     */
+    
+    public void setTab(CarreLCD[] newtab) {
+    	this.tab = newtab;
+    }
+    
     public String getAffichage() {
     	String res = "";
     	for(int i = 0; i < tab.length; i++) {
