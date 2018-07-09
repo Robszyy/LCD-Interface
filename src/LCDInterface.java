@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
@@ -30,8 +29,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
@@ -50,10 +47,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-
 import com.fazecast.jSerialComm.SerialPort;
 import com.sun.management.OperatingSystemMXBean;
 
@@ -253,7 +246,7 @@ public class LCDInterface {
 				errorFrame.setVisible(false);
 				try {
 					Desktop desktop = java.awt.Desktop.getDesktop();
-					URI reportURL = new URI("https://www.google.com");
+					URI reportURL = new URI("https://www.instructables.com/id/LCD-User-Interface/#discuss");
 					desktop.browse(reportURL);
 				} catch (Exception e1) {
 					errorFrame.setVisible(true);
@@ -1127,7 +1120,7 @@ public class LCDInterface {
 									PrintWriter output = new PrintWriter(portChoisi.getOutputStream());
 										
 									while(true) {
-										output.print(new SimpleDateFormat("    HH:mm:ss      dd MMMMMMM yyyy").format(new Date()));
+										output.print(new SimpleDateFormat("    HH:mm:ss       dd/MM/yyyy").format(new Date()));
 										output.flush();
 										try {
 											Thread.sleep(1000); 
